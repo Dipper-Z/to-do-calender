@@ -1,44 +1,27 @@
-name: web-CI
-
+name: CI Github Pages
 on:
+  #监听push操作
   push:
     branches:
-      - main
-
+      - main # 这里只配置了main分支，所以只有推送main分支才会触发以下任务
 jobs:
-  build:
-
+  # 任务ID
+  build-and-deploy:
+    # 运行环境
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [8.x, 10.x, 12.x]
-
+    # 步骤
     steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js 8
-      uses: actions/setup-node@v1
-      with:
-        node-version: 8
-    - name: npm install, build, and test
-      run: |
-        npm install
-        npm run build:test --if-present
-    - name: Publish Docker
-      uses: elgohr/Publish-Docker-Github-Action@2.11
-      with:
-        # The name of the image you would like to push
-        name: ${{secrets.DOCKER_PROGRAM}}
-        # The login username for the registry
-        username: ${{secrets.DOCKER_USERNAME}}
-        # The login password for the registry
-        password: ${{secrets.DOCKER_PASSWORD}}
-          # Use registry for pushing to a custom registry
-        registry: ${{secrets.DOCKER_REGISTRY}}
+      # 官方action，将代码拉取到虚拟机
+      - name: Checkout  ️ 
+        uses: actions/checkout@v3
 
+      - name: Install and Build   # 安装依赖、打包，如果提前已打包好无需这一步
+        run: |
+          npm install
+          npm run build
 
-
-
-
-
-
+      - name: Deploy   # 部署
+        uses: JamesIves/github-pages-deploy-action@v4.3.3
+        with:
+          branch: main # 部署后提交到那个分支
+          folder: dist # 这里填打包好的目录名称
